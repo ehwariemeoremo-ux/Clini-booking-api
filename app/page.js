@@ -9,6 +9,11 @@ function when(text) {
   return d.toLocaleString([], { dateStyle: "medium", timeStyle: "short" });
 }
 
+function hasStarted(slot) {
+  const t = new Date(slot.start).getTime();
+  return !Number.isNaN(t) && t <= Date.now();
+}
+
 export default function Home() {
   const [apiKey, setApiKey] = useState("");
   const [slots, setSlots] = useState([]);
@@ -151,6 +156,7 @@ export default function Home() {
             <input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
             <label htmlFor="email">Your email</label>
             <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            {error && <div className="error">{error}</div>}
             <div className="row" style={{ marginTop: 14 }}>
               <button type="submit" disabled={saving}>{saving ? "Booking..." : "Confirm booking"}</button>
               <button type="button" className="ghost" onClick={() => setSelected(null)}>Cancel</button>
@@ -178,12 +184,14 @@ export default function Home() {
           ) : (
             <ul className="slots">
               {slots.map((s) => (
-                <li key={s.id} className={s.available ? "slot" : "slot taken"}>
+                <li key={s.id} className={s.available && !hasStarted(s) ? "slot" : "slot taken"}>
                   <div>
                     <strong>{s.provider}</strong>
                     <div className="muted">{when(s.start)} to {when(s.end)}</div>
                   </div>
-                  {s.available ? (
+                  {hasStarted(s) ? (
+                    <span className="badge">Past</span>
+                  ) : s.available ? (
                     <button
                       onClick={() => {
                         setSelected(s);
